@@ -1,30 +1,45 @@
-#matlab code
-I=imread('two.jpg');
-figure,imshow(I)
+
+%% load image
+I=imread('three1.jpg');
+figure(1),imshow(I)
 title('Original image')
+%% Image adjust 
 Istrech = imadjust(I,stretchlim(I));
-figure,imshow(Istrech)
+figure(2),imshow(Istrech)
 title('Contrast stretched image')
+%K = medfilt2(Istrech);
+%figure(3),imshow(K)
+%% Convert RGB image to gray
 Igray_s = rgb2gray(Istrech);
-figure,imshow(Igray_s,[])
+figure(3),imshow(Igray_s,[])
 title('RGB to gray (contrast stretched) ')
-level = 0.08;
-Ithres = im2bw(Igray_h,level);
-figure,imshow(Ithres)
-title('Segmented cracks')
-BW = bwmorph(gradmag,'clean',10);
-figure,imshow(BW)
-title('Cleaned image')
-BW = bwmorph(gradmag,'thin', inf);
-figure,imshow(BW)
-title('Thinned image')
-BW = imfill(gradmag, 'holes')
-figure,imshow(BW)
-title('Filled image')
-figure,imtool(BW1)
-figure,imtool(I)
-calibration_length=0.001;
-calibration_pixels=1000;
-crack_pixel=35;
-crack_length=(crack_pixel *calibration_length)/calibration
-print crack_length
+%% Apply median filter to smoothen the image
+K = medfilt2(Igray_s);
+figure(4),imshow(K)
+title('median filter')
+se = strel('disk', 4);
+%% Apply bot-hat and display 
+bothatimg = imbothat(K, se);
+figure(5), imshow(bothatimg);
+title('bot hat')
+%% Binarize the image
+BW = imbinarize(bothatimg,0.07);
+figure(6),imshow(BW);
+title('binary image')
+%% Noise removal
+BW2 = bwareaopen(BW,1000)
+figure(7),imshow(BW2);
+title('Noise reduction')
+%% Thinning of image
+BW4 = bwmorph(BW2,'skel',Inf);
+figure(11),imshow(BW4)
+title('Thinned image(Skeleton)')
+%% Calculation of length
+measurements = regionprops(BW4, 'Area');
+allCrackLengths = [measurements.Area];
+Total_Length=sum(allCrackLengths);
+disp(Total_Length);
+h = imdistline;
+impixelinfo;
+imtool(BW4)
+
